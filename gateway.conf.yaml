@@ -1,0 +1,19 @@
+gateway:
+  
+  # Specify the Gatway listneing address for example `localhost:8000`
+  listenAddr: :8000
+  
+  # Here you list all the backend services that sit behind the gateway. These 
+  # can be services that don't require authentication in the `non-authenticated`
+  # list or services that require authentication in the `authenticated` list.
+  # For each service you specify the path/route URI and the target backend 
+  # service
+  services:
+    non-authenticated:
+      - path: /user
+        target: http://user-management:8000
+    # All protected services have the user ID appended to the header before 
+    # being routed to the service
+    authenticated:
+      - path: /hello
+        target: http://hello-user:8000
