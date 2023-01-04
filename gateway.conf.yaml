@@ -10,10 +10,12 @@ gateway:
   # service
   services:
     non-authenticated:
-      - path: /user
+      - name: User management
+        route: /user
         target: http://user-management:8000
     # All protected services have the user ID appended to the header before 
     # being routed to the service
     authenticated:
-      - path: /hello
+      - name: Hello user
+        route: /hello
         target: http://hello-user:8000

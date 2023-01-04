@@ -1,67 +1,134 @@
-# Reference template for microservice architecture apps
+# Reference template for microservice/multiservice applications
 
-## Abstract and architecture
+## Abstract
 
-This is a reference repository for a typical modern cloud application. The project is broken down into several backend services and the frontend service. The backend services are services that provide application logic and frontend is a siplay service that allows users to interface with all the various backend services throiugh one coherent GUI. Backends referes to all backend services (including authentication). Each of the backend services can be interfaced with via a single URL which is achieved by an API gateway (a reverse-proxy server) which sits in front of all the backends and handles routing to the correct service and implements route protection. The frontend is a display layer which provides a single interface with which users may interact with the application through a GUI.
+This is a reference repository for a full-stack microservice/multiservice 
+application and can be used as a template when starting projects. An 
+application constructed with a microservice architecture is composed of many 
+backend services which are all deployed together. The aim is to decouple the 
+services from one another. In this repository, each microservice service is 
+created in `backends/` and then added to the API gateway configuration under 
+listed `services`. An API gateway (reverse-proxy server) sits in front of all 
+the backend services and handles routing to the correct service (as well as a 
+few other features such as authentication, rate limiting...), this means that 
+all the backend services can be interfaced with via a single host. The frontend 
+server is a display service which provides users with a client-side graphical 
+interface. All the backend services are orchestrated with Docker Compose to 
+facilitate development.
 
-The application architecture is depicted bellow:
-<!-- TODO: Add a reference architecture diagram -->
-```mermaid
-flowchart LR
-    A(Frontend) -->|public| B(API gateway)
-    B <--> C(Authentication)
-    B --> D(Backend service 1)
-    B --> E(Backend service 2)
-    B --> F(Backend service n)
-```
+## Architecture
+
+![](https://raw.githubusercontent.com/a-shine/microservice-template/main/microservice-arch.drawio.svg)
 
 In prose:
-A request is made from the frontend to the API gateway. If the request contains a valid session token it is then forwarded on to the desired microservice as determined by the first path value of the URL. Else the request is considered unauthenticated
 
-Application architecture within the context of Kubernetes
+A request is made from a client (web app, public facing API) to the API gateway.
+If the request contains a valid JWT token and the ID hasn't been blacklisted in 
+the blacklist cache, it is then forwarded to the desired service as determined 
+by the URL path (configured in the `gateway.conf.yaml` file). If the token is 
+invalid, expired or ID within the token blacklisted, the request is 
+unauthorized. The User management service, a non-authenticated service 
+as users need to interact with it before being able to authenticate (to 
+register, log in...). If a user is suspended by an admin user, then his ID is 
+added to the blacklist until his token expires, and he won't be able to log in 
+and obtain a new token until his account is reactivated.
 
-Application architecture within the context of GCP
 
-## Why a microservice architecture
-- allows for non-uniform scalling
+## Why a microservice/multiservice?
 
-## Design decisions
-In order to promote best design practices we have a log which forces is us to record each design desision and justify in order to follow best practices and provide a generalised solution...
-This is a log of the design decions for the template repository in order to force me to justify why a decision was made
-- For develeopment fully orchestrated with docker compose to make life easier for devs
-- all in one repository (monorep microservice application) so that engineers can see the whole codebase and make more informed design decisions
-- custom reverse-proxy/api gateway to not be tied to a cloud provider
-- Infra as code so as to version control infrastrucrure and create more robust understandable systems
-- route protection by default - all services are protected other than the aut service which by definition cxan't be protected
-- document each service locally within the service directory - means that the documentation is naturally organised by the repository structure and broken down into manageable chunks per service + quick to access when working on the service
+- **Non-uniform scaling**
+    The application services scale independently of one another, and we don't 
+    waste resources on services that are not in use. This allows for better use 
+    of available resources and cost optimization when deploying the application.
+- **Separation of tasks** 
+    Each service focuses on doing one thing and one thing well. A good practice 
+    for determining what is in scope for a service is if the service could be 
+    re-written in just a few days as apposed to the months and years needed to 
+    digest and re-writing a large monolithic codebase.
+- **Decoupling services (minimizing dependencies)**
+    In a large monolithic application, every part of the application is 
+    dependent on every other part of the application as it is all coupled 
+    together. If a particular function panics the whole application becomes 
+    unavailable. In this architecture the gateway is a central point of failure,
+    but each other service should be decoupled enabling them to fulfill their 
+    duty despite other services failing. This allows users to continue using 
+    the system, as long as they are not using the broken service but more 
+    importantly it also allows SREs to quickly identify problems.
 
-## Setting up the repository for development
+## Design decisions log
 
-### Orchestration
+In order to promote better design, having a log of design decisions and their 
+respective justification formalizes each decision and can enable more effective 
+reasoning and robust design.
 
-One of the diffciulties when working with microserviuces is that there are many moving components that are required to make the app run - this can get in the way of developmnent as some services may have dependencies on other services in order for them to be worked on. You could run each service locally on the machine in different shell sessions but this can quickly become tedious specially if the architetcure has many services. This is where an automated orchestration tool can be of use. An orchestration tool 'orchestrates' all the different services. It records their dependencies and allows them to communicate with each other. It is used to build all the necessery copnents of the application and bring them up together so that they can communicate with one another. In addition, all teh application logs are aggregated into one shell which makes debugging easier. An orchestration tool such a docker-compose, which is geared towards local orchestration for developes can be an easy way to orchestrate your mciroservices on development machines.
+Example log of the design decisions for this repository:
+- Fully orchestrated backend with Docker Compose to make life easier when 
+developing. However, do not include the frontend server as while developing, it 
+is easier to work with Node modules and typescript completion when the frontend 
+code is not containerized. In addition, the frontend is just one service, so it
+is not difficult to manage the frontend server when developing.
+- All the services (including the frontend) in one repository. This allows 
+engineers to have visibility on the whole codebase and make more informed 
+design decisions. In addition, it reduces the overhead and risk of poor 
+dependency management.
+- Custom reverse-proxy/API gateway to not be tied to a cloud provider.
+- Infra-as-code to version control infrastructure and increase visibility on 
+resources.
+- Document each service locally within the service directory. This organically 
+organizes the documentation and breaks down information into manageable chunks 
+per service. In addition, a developer knows exactly where to look when working 
+on a service.
 
-Build each of the services with:
+## Getting started
+
+### Backend development
+
+#### Writing code
+
+One of the difficulties when working with microservices is that there are many 
+moving parts that are required to make the app work. This can get in the way of 
+development as even if many services are decoupled it is possible to have 
+dependencies on services such as a database. You could run each service locally
+on the machine in different shell sessions, but this can quickly become tedious 
+specially if the architecture has many services. This is where an automated 
+orchestration tool can be of use.
+
+An orchestration tool 'orchestrates' all the different services. It records 
+their dependencies and allows them to communicate with each other. It is used 
+to build all the components of the application and bring them up together. In 
+addition, all the application logs are aggregated into one shell which cane 
+make debugging easier. An orchestration tool such a Docker Compose, is geared 
+towards development and makes it easy to orchestrate your services on a 
+development machines.
+
+1. From the root of the repository, build the services with:
 ```bash
-docker compose -f compose-dev.yml build
+docker compose build
 ```
 
-Then, bring the whole application up with:
+2. Then, bring the whole application up with:
 ```bash
-docker compose -f compose-dev.yml up
+docker compose up
 ```
+
+3. Interface with the services through the gateway with the 
+http://localhost:8000/[SERVICE_NAME][SERVICE_ROUTE] or directly with the 
+microservice http://localhost:[SERVICE_DEV_PORT][SERVICE_ROUTE]
 
 Exit the session with `ctrl+c`
 
-And bring all the services down with
+
+Finally, bring all the services down with
 ```bash
-docker compose -f compose-dev.yml down
+docker compose down
 ```
+Note that this will delete all the cached volumes, so development data will be 
+lost.
 
+#### Testing the API
 
-### Testing the API
-
-There are many way to develop and test an API. You can use excelent tools such as postman with GUIs but the simplest way is to just use the `cURL` programme pre-installed on most unix machines. 
+You can use tools such as Postman or Insomnia with GUIs, but the simplest way 
+is to just use the `cURL` program installed on most UNIX machines.
 
 test curl commands for the api
 
@@ -71,17 +138,25 @@ curl -X POST -v -H "Content-Type: application/json" -d '{"username": "[USERNAME]
 curl -X POST -v -H "Content-Type: application/json" -d '{"username": "[USERNAME]", "password": "[PASSWORD]"}' http://localhost:8000/auth/signin
 
 ```bash
-curl -v --cookie "session_token=[TOKEN]" http://localhost:8000/*
+curl -v --cookie "token=[TOKEN]" http://localhost:8000/*
 ```
 
+### Frontend development
 
-Integrating with IDE tooling when working with a containerised microservice app - this is a paine
 
-## Going into production
+## Deploying in production
 
-While microservice architectures have many benefits they are tricker to work with both in development and production because of the need for orchestration and managing dependencies between each of the services.
+While microservice architectures have many benefits they are tricker to work 
+with both in development and production because of the need for orchestration 
+and managing dependencies for each of the services.
 
-While docker-compose works well in the context of development it is limited to running each service on the same machine. This is where Kubernetes comes in - its function is the same as docker compose: orchestration but is able to spread computation across a cluster of machines.
+While Docker Compose works well in the context of development it is limited to 
+running each service on the same machine. This is where Kubernetes comes in - 
+its core function is the same as for Docker Compose: orchestration, but is able 
+to spread computation across a cluster of machines making it better suited to 
+production.
+
+
 
 Generating the kubernetes manifest files from the compose-prod.yml configuration (remove debugging services and settings)
 ```bash
@@ -110,33 +185,7 @@ https://loft.sh/blog/docker-compose-alternatives-for-kubernetes-skaffold/
 
 The skaffold is used to build all the custome images + run all the images needed for local development
 
-Great example architecture diagram
-```mermaid
-graph TD
-    LIB --> |HTTP or gRPC| COLLECTOR
-    LIB[Jaeger Client] --> |UDP| AGENT[Jaeger Agent]
-    %% AGENT --> |HTTP/sampling| LIB
-    AGENT --> |gRPC| COLLECTOR[Jaeger Collector]
-    %% COLLECTOR --> |gRPC/sampling| AGENT
-    SDK[OpenTelemetry SDK] --> |UDP| AGENT
-    SDK --> |HTTP or gRPC| COLLECTOR
-    COLLECTOR --> STORE[Storage]
-    COLLECTOR --> |gRPC| PLUGIN[Storage Plugin]
-    PLUGIN --> STORE
-    QUERY[Jaeger Query Service] --> STORE
-    QUERY --> |gRPC| PLUGIN
-    UI[Jaeger UI] --> |HTTP| QUERY
-    subgraph Application Host
-        subgraph User Application
-            LIB
-            SDK
-        end
-        AGENT
-    end
-```
 
-
-Maybe just use compose cause its easier and then have a separate repo for kub manifest file
 
 
 everything in the release directory should typically be kept in another highly restricted repo to keep track of the exact production orchestration parametere and production keys
@@ -145,37 +194,7 @@ Use a dev cluster to replicate the production environkment just to test that the
 
 This is another good resource - https://github.com/GoogleCloudPlatform/microservices-demo
 
-Is microservice really better? - the thought that has been plaguing me since i've started working with them
 
 
-
-
-Pushing the images to gcp
-Pre-requist: have cloud sdk installed 
-
-```bash
-gcloud auth login
-```
-
-```bash
-gcloud auth configure-docker
-```
-
-
-Using skaffold is pretty cool and can be an alternative to using compose locally for development but it requires developers to manage manifest files and hence requires a greater overhead than using a simple compose file - so in the context of teh develpment repo probably best to just use compose and then have another devops repo used to manege the release manifest files and ci/cd stuff
-
-
-Do not used the default VPC for a production system - make a new one and create regional subnetworks as desired and firewall rules to only allow ingress on specified ports
 
 Obviously don't store secrete objects in your dev repository - ./release-orch/_auth_db-secret.yaml should be placed in a secret repository and pulled into the production system
-
-dev cluster and prod cluster
-
-
-Set the context for kubctl with
-gcloud container clusters get-credentials [CLUSTER_NAME] --zone=[CLUSTER_ZONE]
-
-Check the correct context with
-kubectl config current-context
-
-The auth service is configured to connect to the sql database via its local IP (as both the SQL instance and GKE cluster are on the same VPC) - we do not use the Cloud SQL Auth proxy sidecar method as it adds extra complexity and prevents the configuration from being portable to other cloud providers (https://cloud.google.com/sql/docs/postgres/connect-kubernetes-engine#proxy)

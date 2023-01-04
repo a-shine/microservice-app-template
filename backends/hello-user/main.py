@@ -1,14 +1,12 @@
-import os
-
-from flask import Flask
+from flask import Flask, request
 
 app = Flask(__name__)
 
 
 @app.route("/")
-def hello_world():
-    name = os.environ.get("NAME", "World")
-    return "Hello {}!".format(name)
+def hello_user():
+    user_id = request.headers['id']
+    return "Hello {}!".format(user_id)
 
 
 if __name__ == "__main__":

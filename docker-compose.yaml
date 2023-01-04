@@ -1,6 +1,6 @@
 services:
 
-  # Main logical services
+  # Logical services
   api-gateway:
     image: ashinebourne/api-gateway:latest
     ports:
@@ -19,7 +19,7 @@ services:
     ports:
       - "8001:8000"
     environment:
-      - JWT_SECRET=secret
+      - JWT_SECRET_KEY=secret
       - JWT_TOKEN_EXP_MIN=60
       - DB_HOST=user-db
       - DB_PORT=27017
@@ -54,14 +54,13 @@ services:
       - 6379:6379
     environment:
       - REDIS_PASSWORD=password123
-
   # Dev tools
-  db-gui:
-    image: mongo-express
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: secret
-      ME_CONFIG_MONGODB_SERVER: user-db
-    restart: always
+  # db-gui:
+  #   image: mongo-express
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: root
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: secret
+  #     ME_CONFIG_MONGODB_SERVER: user-db
+  #   restart: always
