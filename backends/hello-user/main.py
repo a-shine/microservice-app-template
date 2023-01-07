@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -6,7 +6,7 @@ app = Flask(__name__)
 @app.route("/")
 def hello_user():
     user_id = request.headers['auth_id']
-    return "Hello {}!".format(user_id)
+    return jsonify({"message": "Hello {}!".format(user_id)})
 
 
 if __name__ == "__main__":
