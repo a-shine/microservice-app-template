@@ -1,6 +1,8 @@
 <script lang="ts">
     import { replace } from "svelte-spa-router";
 
+    let errorMessage: string;
+
     // make call to backend login endpoint
     async function onSubmit(event: Event) {
         const form = event.target as HTMLFormElement;
@@ -22,7 +24,8 @@
             replace("/");
         } else {
             // show error message
-            alert("Invalid username or password");
+            const data = await response.json();
+            errorMessage = data.message;
         }
     }
 </script>
@@ -34,8 +37,14 @@
     <input id="email" type="email" name="email" required />
     <label for="password">Password</label>
     <input id="password" type="password" name="password" required />
+    <hr />
     <button type="submit">Login</button>
 </form>
+
+<!-- if errorMessage display -->
+{#if errorMessage}
+    <p>{errorMessage}</p>
+{/if}
 
 <style>
     /* Arrange inputs verically */
@@ -44,4 +53,6 @@
         flex-direction: column;
         max-width: 300px;
     }
+
+    /* add space between inputs and submit button inside form */
 </style>

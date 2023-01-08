@@ -79,3 +79,16 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 } */
+
+/* icon button */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
