@@ -9,7 +9,7 @@
         const formData = new FormData(form);
         const email = formData.get("email");
         const password = formData.get("password");
-        const response = await fetch("api/user/signin", {
+        const response = await fetch("api/user/login", {
             method: "POST",
             credentials: "include",
             headers: {
