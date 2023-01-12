@@ -122,7 +122,7 @@ curl -v -H "Content-type: application/json" -d '{"password": "secret", "email":"
 
 Logging in:
 ```bash
-curl -v -H "Content-type: application/json" -d '{"password": "secret", "email":"bob@myemail.com"}' localhost:8000/login
+curl -v -H "Content-type: application/json" -d '{"password": "secret", "email":"bob@myemail.com"}' localhost:8000/user/login
 ```
 
 Any other request (that requires authentication):

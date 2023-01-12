@@ -6,7 +6,7 @@ services:
       - "8000:8000"
     environment:
       - JWT_SECRET_KEY=secret
-      - REDIS_HOST=auth-blacklist
+      - REDIS_HOST=user-cache
       - REDIS_PORT=6379
       - REDIS_PASSWORD=password123
     volumes:
@@ -25,7 +25,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=secret
       - DB_NAME=user_management
-      - REDIS_HOST=auth-blacklist
+      - REDIS_HOST=user-cache
       - REDIS_PORT=6379
       - REDIS_PASSWORD=password123
     depends_on:
