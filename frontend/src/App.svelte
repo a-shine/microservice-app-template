@@ -1,9 +1,13 @@
 <script lang="ts">
-  import Router, { replace } from "svelte-spa-router";
+  import Router, { replace, location } from "svelte-spa-router";
   import wrap from "svelte-spa-router/wrap";
   import Hello from "./Hello.svelte";
   import Login from "./Login.svelte";
   import NotFound from "./NotFound.svelte";
+  import Modal from "./lib/Modal.svelte";
+  import UserSum from "./UserSum.svelte";
+
+  let showModal = false;
 
   // isAuth is a function that returns a promise that resolves to a boolean
   // indicating whether the user is authenticated
@@ -40,11 +44,18 @@
 </script>
 
 <main>
-  <!-- <nav> Do not relaod between switching pages -->
-  <!-- <a href="/#">Home</a>
-    <a href="/#/login">About</a>
-    <a href="/#/blog/colors">Colors</a>
-  </nav> -->
+  {#if $location !== "/login"}
+    <button on:click={() => (showModal = true)} style="float:right;">
+      &#8942;
+    </button>
+  {/if}
+
+  {#if showModal}
+    <Modal on:close={() => (showModal = false)}>
+      <UserSum />
+    </Modal>
+  {/if}
+
   <Router
     routes={{
       "/": wrap({
